@@ -44,6 +44,7 @@ THIRD_PARTY_APPS = [
 
 MY_APPS = [
     'users',
+    'movies',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + MY_APPS
@@ -78,6 +79,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'kenzie_buster.wsgi.application'
 
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',)
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
