@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from .models import RatingChoices, Movie
-from users.serializers import UserSerializer
-from users.models import User
 
 
 class MovieSerializer(serializers.Serializer):

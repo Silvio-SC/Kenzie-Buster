@@ -13,7 +13,6 @@ class MovieView(APIView):
     def get(self, req: Request) -> Response:
         movies = Movie.objects.all()
         serializer = MovieSerializer(movies, many=True)
-        # serializer.is_valid()
 
         return Response(serializer.data, status.HTTP_200_OK)
 
@@ -35,14 +34,9 @@ class MovieDetailView(APIView):
 
     def get(self, req: Request, movie_id: int) -> Response:
         movie = get_object_or_404(Movie, pk=movie_id)
-        # movie_return = {
-        #     "id": movie.id,
-        #     "added_by": f"{movie.user.email}",
-        #     "rating": movie.rating,
-        #     "synopsis": movie.synopsis
-        # }
-        serializer = MovieSerializer(movie)
 
+        serializer = MovieSerializer(movie)
+        print(movie.user)
         movie_return = serializer.data
         movie_return["added_by"] = movie.user.email
 

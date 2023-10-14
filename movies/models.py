@@ -1,4 +1,5 @@
 from django.db import models
+from users.models import User
 
 
 class RatingChoices(models.TextChoices):
@@ -23,4 +24,9 @@ class Movie(models.Model):
         on_delete=models.CASCADE,
         related_name="movies",
         null=True
+        )
+    movie_order = models.ManyToManyField(
+        User,
+        through="movies_orders.movieorder",
+        related_name="movie_order"
         )
