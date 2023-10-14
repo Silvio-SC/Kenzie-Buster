@@ -1,8 +1,10 @@
 from rest_framework.views import APIView, Request, Response, status
-from .serializers import UserSerializer, UserLoginSerializer
+from .serializers import UserSerializer
 from .models import User
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.shortcuts import get_object_or_404
+from .permissions import IsUserOwner
 
 
 class UserView(APIView):
@@ -39,27 +41,57 @@ class UserView(APIView):
         return Response(serializer.data, status.HTTP_201_CREATED)
 
 
-class UserLoginView(APIView):
-    def post(self, req: Request) -> Response:
-        serializer = UserLoginSerializer(data=req.data)
-        serializer.is_valid(raise_exception=True)
+class UserDetailView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsUserOwner]
 
-        user = authenticate(
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password'],
-        )
+    def get(self, req: Request, user_id: int):
+        user = get_object_or_404(User, pk=user_id)
 
-        if not user:
-            return Response(
-                {"detail": "No active account was found."},
-                status.HTTP_403_FORBIDDEN
-            )
+        if not req.user.is_employee:
+            self.check_object_permissions(req, user)
 
-        refresh = RefreshToken.for_user(user)
+        serializer = UserSerializer(user)
 
-        token = {
-            "refresh": str(refresh),
-            "access": str(refresh.access_token)
-        }
+        return Response(serializer.data, status.HTTP_200_OK)
 
-        return Response(token)
+    def patch(self, req: Request, user_id):
+        user = get_object_or_404(User, pk=user_id)
+
+        if not req.user.is_employee:
+            self.check_object_permissions(req, user)
+
+        serializer = UserSerializer(user, req.data, partial=True)
+        serializer.is_valid()
+
+        if req.data["password"]:
+            user.set_password(req.data["password"])
+
+        serializer.save()
+
+        return Response(serializer.data, status.HTTP_200_OK)
+
+# class UserLoginView(APIView):
+#     def post(self, req: Request) -> Response:
+#         serializer = UserLoginSerializer(data=req.data)
+#         serializer.is_valid(raise_exception=True)
+
+#         user = authenticate(
+#             username=serializer.validated_data['username'],
+#             password=serializer.validated_data['password'],
+#         )
+
+#         if not user:
+#             return Response(
+#                 {"detail": "No active account was found."},
+#                 status.HTTP_403_FORBIDDEN
+#             )
+
+#         refresh = RefreshToken.for_user(user)
+
+#         token = {
+#             "refresh": str(refresh),
+#             "access": str(refresh.access_token)
+#         }
+
+#         return Response(token)
